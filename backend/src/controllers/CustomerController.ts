@@ -38,3 +38,18 @@ export async function createCustomer(req: any, res: any) {
         return res.status(500).json({ error: 'Internal server error' });
     }
 }
+
+export async function getAllCustomers(req: any, res: any) {
+  try {
+    const customerCount = await prisma.customer.count();
+    console.log("Total customers:", customerCount);
+
+    return res.status(200).json({
+      success: true,
+      count: customerCount,
+    });
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}

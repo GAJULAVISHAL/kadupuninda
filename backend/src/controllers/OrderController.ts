@@ -62,3 +62,24 @@ export const getTodayOrders = async (req:any, res:any) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+export const getAllOrders = async (req: any, res: any) => {
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        customer: true,
+        deliveries: true,
+      },
+    });
+    console.log("🔍 Total Orders Found:", orders.length);
+    console.log("🧾 Orders Data:", orders);
+    res.json({ orders });
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
