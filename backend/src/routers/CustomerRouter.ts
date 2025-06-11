@@ -1,5 +1,6 @@
 import express from "express";
-import { createCustomer } from "../controllers/CustomerController";
+import { createCustomer, getAllCustomers } from "../controllers/CustomerController";
 export const customerRouter = express.Router();
 
 customerRouter.post('/create',createCustomer);
+customerRouter.get('/customersCount',getAllCustomers)

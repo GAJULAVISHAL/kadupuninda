@@ -27,7 +27,7 @@ export default function OrderManagement() {
 
         const ordersData = response.data.orders || [];
 
- const formattedOrders = ordersData.map((order: any, index: number): Order => {
+const formattedOrders = ordersData.map((order: any, index: number): Order => {
   console.log("Customer Info:", order.customer);
   return {
     _id: String(order.id || `order-${index}`),
