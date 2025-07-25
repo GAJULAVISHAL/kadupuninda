@@ -47,18 +47,27 @@ model Order {
 model Menu {
   id        String   @id @default(uuid())
   menuType  String
-  menuDate  String   @map("menu_date") // YYYY-MM-DD format
-  menuItems String[] // This must be a String array
+  menuDate  String   @map("menu_date") 
+  menuItems String[] 
   createdAt DateTime @default(now())
+}
+
+model WhatsAppResponse {
+  id        Int      @id @default(autoincrement())
+  from      String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("whatsapp_responses")
 }
 
 model Delivery {
   id               Int       @id @default(autoincrement())
   orderId          Int       @map("order_id")
-  deliveryDate     String    @map("delivery_date") // YYYY-MM-DD format
-  mealType         String    @map("meal_type") // 'lunch', 'dinner'
-  customerResponse String?   @map("customer_response") // 'confirmed', 'skipped', null
-  deliveryStatus   String    @default("to_be_delivered") @map("delivery_status") // 'to_be_delivered', 'in_progress', 'delivered'
+  deliveryDate     String    @map("delivery_date")
+  mealType         String    @map("meal_type") 
+  customerResponse String?   @map("customer_response")
+  deliveryStatus   String    @default("to_be_delivered") @map("delivery_status")
   deliveredAt      DateTime? @map("delivered_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   

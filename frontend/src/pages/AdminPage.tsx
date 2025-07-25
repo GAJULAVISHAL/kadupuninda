@@ -7,6 +7,8 @@ import { NavbarAdmin } from "../components/NavbarAdmin";
 import { Calendar, Users, DollarSign, Truck } from "lucide-react";
 import Menu from "../components/Menu";
 import AllOrders from "../components/allorders";
+import { Toaster } from "react-hot-toast";
+import WhatsAppResponses from "../components/WhatsAppResponses";
 
 export const AdminPage = () => {
   const [todayOrderCount, setTodayOrderCount] = useState<number>(0);
@@ -15,7 +17,7 @@ export const AdminPage = () => {
   useEffect(() => {
     const fetchTodayOrders = async () => {
       try {
-        const res = await axios.get("http://localhost:4010/api/v1/order/today");
+        const res = await axios.get("http://localhost:3000/api/v1/order/today");
         const orders = res.data.orders || [];
         setTodayOrderCount(orders.length);
       } catch (err) {
@@ -25,7 +27,7 @@ export const AdminPage = () => {
 
     const fetchCustomers = async () => {
       try {
-    const res = await axios.get("http://localhost:4010/api/v1/customer/customersCount");
+    const res = await axios.get("http://localhost:3000/api/v1/customer/customersCount");
 setCustomerCount(res.data.count || 0);
 
       } catch (err) {
@@ -40,6 +42,7 @@ setCustomerCount(res.data.count || 0);
   return (
     <div className="flex flex-col min-h-screen p-4 bg-gray-100">
       <NavbarAdmin />
+      <Toaster position="top-right" />
 
       <div className="max-w-5xl w-full mx-auto space-y-6">
         <div className="text-left">
@@ -91,6 +94,8 @@ setCustomerCount(res.data.count || 0);
         </div>
 
         <AllOrders />
+
+        <WhatsAppResponses />
       </div>
     </div>
   );

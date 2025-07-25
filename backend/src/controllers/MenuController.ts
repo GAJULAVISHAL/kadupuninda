@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 
 export async function createMenu(req: any, res: any) {
@@ -66,6 +67,9 @@ export async function getTodayMenu(req: any, res: any) {
                 menuDate: formattedDate,
                 menuType: menuType.toString(),
             },
+            orderBy:{
+                createdAt: 'desc',
+            }
         });
 
         if (!menu) {

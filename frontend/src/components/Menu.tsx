@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 import OrderManagement from './ordermanagement';
+import toast from 'react-hot-toast';
 
 const MenuManagement = () => {
   const [menuType, setMenuType] = useState('Lunch Menu');
@@ -33,16 +34,18 @@ const MenuManagement = () => {
       };
 
       // Make API call
-      const response = await axios.post('http://localhost:4010/api/v1/menu/add', requestBody,{
+      const response = await axios.post('http://localhost:3000/api/v1/menu/add', requestBody,{
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      console.log("Sending request body:", requestBody);
-
-
-      console.log('Menu created successfully:', response.data);
+      if(!response.data.success) {
+        toast.error('Failed to create menu. Please try again.');
+        return
+      }
+      
+      toast.success(' Menu created successfully!');
 
       // Simulate WhatsApp sending logic (as in original code)
       const total = parseInt(totalCustomers);

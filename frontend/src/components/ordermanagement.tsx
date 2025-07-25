@@ -10,7 +10,7 @@ interface Order {
   phoneNumber: string;
   mealType: "lunch" | "dinner";
   address: string;
-  status: "pending" | "preparing" | "in-transit" | "delivered";
+  status: "pending"  | "delivered";
   createdAt: string;
 }
 
@@ -22,7 +22,7 @@ export default function OrderManagement() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:4010/api/v1/order/today");
+        const response = await axios.get("http://localhost:3000/api/v1/order/today");
         console.log("API Response:", response.data);
 
         const ordersData = response.data.orders || [];
@@ -65,7 +65,7 @@ const formattedOrders = ordersData.map((order: any, index: number): Order => {
 
   const updateOrderStatus = async (orderId: string, newStatus: Order["status"]) => {
     try {
-      await axios.patch(`http://localhost:4010/api/v1/order/${orderId}`, {
+      await axios.patch(`http://localhost:3000/api/v1/order/${orderId}`, {
         status: newStatus
       });
 
@@ -144,8 +144,6 @@ const formattedOrders = ordersData.map((order: any, index: number): Order => {
                     className={`appearance-none ${getStatusColor(order.status)} pr-8 pl-3 py-1 rounded-full text-xs font-medium capitalize focus:outline-none focus:ring-1 focus:ring-gray-300`}
                   >
                     <option value="pending">Pending</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="in-transit">In Transit</option>
                     <option value="delivered">Delivered</option>
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
@@ -167,21 +165,17 @@ const formattedOrders = ordersData.map((order: any, index: number): Order => {
   );
 }
 
-function formatPhoneNumber(phoneNumber?: string): string {
-  if (!phoneNumber) return "";
-  const cleaned = ("" + phoneNumber).replace(/\D/g, "");
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phoneNumber;
-}
+// function formatPhoneNumber(phoneNumber?: string): string {
+//   if (!phoneNumber) return "";
+//   const cleaned = ("" + phoneNumber).replace(/\D/g, "");
+//   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+//   return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phoneNumber;
+// }
 
 function getStatusColor(status: Order["status"]) {
   switch (status) {
     case "pending":
       return "bg-yellow-100 text-yellow-800";
-    case "preparing":
-      return "bg-blue-100 text-blue-800";
-    case "in-transit":
-      return "bg-purple-100 text-purple-800";
     case "delivered":
       return "bg-green-100 text-green-800";
     default:

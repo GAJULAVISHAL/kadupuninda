@@ -1,7 +1,7 @@
 
 
 import { useState, useEffect } from 'react';
-import { Download, Truck, Smartphone, MapPin, Clock } from 'lucide-react';
+import {  Truck, Smartphone, MapPin, Clock } from 'lucide-react';
 import axios from 'axios';
 
 interface Order {
@@ -35,7 +35,7 @@ export default function AllOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:4010/api/v1/order/allOrders");
+        const response = await axios.get("http://localhost:3000/api/v1/order/allOrders");
         const ordersData = response.data.orders || [];
 
         const formattedOrders = ordersData.map((order: any, index: number): Order => ({
@@ -58,9 +58,6 @@ export default function AllOrders() {
     fetchOrders();
   }, []);
 
-  const handleExportCSV = () => {
-    alert("CSV Export not implemented yet!");
-  };
 
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-full border border-gray-200">
@@ -71,13 +68,7 @@ export default function AllOrders() {
           <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
             {orders.length} orders
           </span>
-          <button
-            onClick={handleExportCSV}
-            className="border border-gray-300 px-3 py-1 text-sm rounded-md hover:bg-gray-100 flex items-center space-x-1"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
+          
         </div>
       </div>
 
