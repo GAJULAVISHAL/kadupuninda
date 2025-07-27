@@ -36,9 +36,6 @@ export const CustomerPage = () => {
   const [landmark, setLandmark] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
-  const [isDefaultAddress, setIsDefaultAddress] = useState(false);
-  const [deliveryInstructions, setDeliveryInstructions] = useState('');
-  const [showInstructions, setShowInstructions] = useState(false);
 
   // Combined address for API
   const getCombinedAddress = () => {
@@ -51,19 +48,10 @@ export const CustomerPage = () => {
       city,
       state,
       pincode && `PIN: ${pincode}`,
-      deliveryInstructions && `Instructions: ${deliveryInstructions}`
     ].filter(Boolean);
 
     return addressParts.join(', ');
   };
-
-  const states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-  ];
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -73,7 +61,7 @@ export const CustomerPage = () => {
 
       // Fetch lunch menu
       try {
-        const lunchRes = await axios.get('http://localhost:3000/api/v1/menu/today?menuType=lunch');
+        const lunchRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/menu/today?menuType=lunch`);
         if (lunchRes.data?.data?.menuItems && lunchRes.data.data.menuItems.length > 0) {
           setLunchMenu(lunchRes.data.data.menuItems);
           menuStatus.lunch = true;
@@ -84,7 +72,7 @@ export const CustomerPage = () => {
 
       // Fetch dinner menu
       try {
-        const dinnerRes = await axios.get('http://localhost:3000/api/v1/menu/today?menuType=dinner');
+        const dinnerRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/menu/today?menuType=dinner`);
         if (dinnerRes.data?.data?.menuItems && dinnerRes.data.data.menuItems.length > 0) {
           setDinnerMenu(dinnerRes.data.data.menuItems);
           menuStatus.dinner = true;
@@ -198,7 +186,7 @@ export const CustomerPage = () => {
       // Step 1: Create Customer
       console.log('Creating customer with:', { whatsappNumber: phone, deliveryAddress: address });
 
-      const customerRes = await axios.post('http://localhost:3000/api/v1/customer/create', {
+      const customerRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/customer/create`, {
         whatsappNumber: phone,
         deliveryAddress: address
       });
@@ -236,7 +224,7 @@ export const CustomerPage = () => {
 
       console.log('Creating order with:', orderPayload);
 
-      const orderRes = await axios.post('http://localhost:3000/api/v1/order/createOrder', orderPayload);
+      const orderRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/order/createOrder`, orderPayload);
       const orderData = orderRes.data;
       console.log('Order creation response:', orderData);
 

@@ -17,7 +17,7 @@ export const AdminPage = () => {
   useEffect(() => {
     const fetchTodayOrders = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/v1/order/today");
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/order/today`);
         const orders = res.data.orders || [];
         setTodayOrderCount(orders.length);
       } catch (err) {
@@ -27,8 +27,8 @@ export const AdminPage = () => {
 
     const fetchCustomers = async () => {
       try {
-    const res = await axios.get("http://localhost:3000/api/v1/customer/customersCount");
-setCustomerCount(res.data.count || 0);
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/customer/customersCount`);
+        setCustomerCount(res.data.count || 0);
 
       } catch (err) {
         console.error("Error fetching customers:", err);

@@ -35,7 +35,7 @@ export default function AllOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/order/allOrders");
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/order/allOrders`);
         const ordersData = response.data.orders || [];
 
         const formattedOrders = ordersData.map((order: any, index: number): Order => ({
@@ -60,7 +60,7 @@ export default function AllOrders() {
 
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-6 w-full border border-gray-200">
+    <div className="bg-white shadow-md rounded-xl p-4 w-full border border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-green-700">📦 All Orders</h2>
