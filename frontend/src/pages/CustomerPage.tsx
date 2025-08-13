@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import { Navbar } from "../components/Navbar";
-import { Sun, Moon, Utensils, Calendar, Lightbulb, Clock, Phone, MapPin, FileText, CreditCard, ChevronDown } from 'lucide-react';
+import { Sun, Moon, Utensils, Calendar, Lightbulb, Clock, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -24,7 +24,7 @@ export const CustomerPage = () => {
     dinner: false
   });
 
-  const ratePerMeal = 80;
+  const ratePerMeal = 1;
   const totalAmount = mealCount * ratePerMeal;
 
 
@@ -154,103 +154,84 @@ export const CustomerPage = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    // Check if selected meal type is available
-    if (!isMealTypeAvailable(selectedMeal)) {
-      toast.error(`Selected meal type is not available today. Please choose another option.`);
-      return;
+  const handlePayment = async () => {
+    console.log("handleing payment")
+    // --- Step 1: Basic form validation ---
+    if (!phone.trim() || phone.length !== 10 || !/^\d+$/.test(phone)) {
+      return toast.error('Please enter a valid 10-digit WhatsApp number');
     }
-
-    // Input validation
-    if (!phone.trim()) {
-      toast.error('Please enter your WhatsApp number');
-      return;
-    }
-
-    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-      toast.error('Please enter a valid 10-digit WhatsApp number');
-      return;
-    }
-
     if (!address.trim()) {
-      toast.error('Please enter your delivery address');
-      return;
+      return toast.error('Please enter your delivery address');
     }
-
     if (mealCount <= 0) {
-      toast.error('Please enter a valid number of meals');
-      return;
+      return toast.error('Please enter a valid number of meals');
     }
 
     try {
-      // Step 1: Create Customer
-      console.log('Creating customer with:', { whatsappNumber: phone, deliveryAddress: address });
-
+      // --- Step 2: Create a customer account ---
       const customerRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/customer/create`, {
         whatsappNumber: phone,
-        deliveryAddress: address
+        deliveryAddress: address,
       });
-
-      const customerData = customerRes.data;
-      console.log('Customer creation response:', customerData);
-
-      if (!customerData.success) {
-        toast.error('Failed to create customer account. Please try again.');
-        return;
-      }
-
-      const customerId =
-        customerData.customerId ||
-        customerData.data?.id ||
-        customerData.data?.customerId ||
-        customerData.id;
-
+      const customerId = customerRes.data.data.id;
       if (!customerId) {
-        console.error('Customer ID not found in response:', customerData);
-        toast.error('Customer account created but ID not received. Please contact support.');
-        return;
+        throw new Error('Customer ID not found');
       }
 
-      console.log('Customer created successfully with ID:', customerId);
+      // --- Step 3: Get Razorpay order_id from your backend ---
+      const orderRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/payment/create-order`, {
+        amount: totalAmount,
+      });
+      const { order } = orderRes.data;
 
-      // Step 2: Create Order
-      const orderPayload = {
-        customerId,
-        mealQuantity: mealCount,
-        mealSplit: selectedMeal,
-        totalAmount,
-        paymentId: `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      // --- Step 4: Configure and open the Razorpay payment modal ---
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Get your key from .env.local
+        amount: order.amount,
+        currency: order.currency,
+        name: "Kadupuninda Meals",
+        description: "Meal Subscription Payment",
+        order_id: order.id,
+        // This handler function is called upon successful payment
+        handler: async function (response: any) {
+          // --- Step 5: Send payment details to your backend for verification ---
+          const verificationRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/payment/verify`, {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            // Pass all the other order details needed for creation
+            customerId,
+            mealQuantity: mealCount,
+            mealSplit: selectedMeal,
+            totalAmount,
+            whatsappNumber: phone
+          });
+
+          if (verificationRes.data.success) {
+            toast.success(verificationRes.data.message);
+            // Reset form on success
+            setPhone('');
+            setAddress('');
+            setMealCount(10);
+          } else {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: "Customer Name", // Optional
+          contact: phone
+        },
+        theme: {
+          color: "#4CAF50" // A nice green theme
+        }
       };
 
-      console.log('Creating order with:', orderPayload);
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
 
-      const orderRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/order/createOrder`, orderPayload);
-      const orderData = orderRes.data;
-      console.log('Order creation response:', orderData);
-
-      if (!orderData.success) {
-        toast.error('Customer created but order placement failed. Please try again.');
-        return;
-      }
-
-      toast.success('✅ Payment successful and order placed!');
-
-      // Reset form fields
-      setMealCount(10);
-      setSelectedMeal(availableMenus.lunch && availableMenus.dinner ? 'both' :
-        availableMenus.lunch ? 'lunch' : 'dinner');
-      setPhone('');
-      setAddress('');
-
-      console.log('Order placed successfully!');
-    } catch (err: any) {
-      console.error('Error during submission:', err);
-
-      if (axios.isAxiosError(err)) {
-        toast.error(err.response?.data?.message || 'Network error. Please try again.');
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+    } catch (err) {
+      console.error(err);
+      toast.error('An error occurred. Please try again.');
     }
   };
 
@@ -496,7 +477,7 @@ export const CustomerPage = () => {
                 <p className="text-sm text-gray-500 mt-2 flex items-center gap-1">
                   <span>📱</span> Order confirmations via WhatsApp
                 </p>
-                
+
                 <div>
                   <div>
                     <label className="flex items-center font-semibold text-gray-800 mb-4 text-lg">
@@ -663,7 +644,7 @@ export const CustomerPage = () => {
 
               {/* Pay Button */}
               <button
-                onClick={handleSubmit}
+                onClick={handlePayment}
                 disabled={!isMealTypeAvailable(selectedMeal)}
                 className={`w-full py-4 px-6 rounded-2xl text-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-105 ${isMealTypeAvailable(selectedMeal)
                   ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl'

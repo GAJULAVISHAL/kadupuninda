@@ -106,7 +106,6 @@ const MenuManagement = () => {
               >
                 <option>Lunch Menu</option>
                 <option>Dinner Menu</option>
-                <option>Both Menu</option>
               </select>
             </div>
 
