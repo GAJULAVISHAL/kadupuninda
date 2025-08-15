@@ -155,34 +155,43 @@ export const CustomerPage = () => {
   };
 
   const handlePayment = async () => {
-    console.log("handleing payment")
-    // --- Step 1: Basic form validation ---
+    console.log("1. handlePayment function started.");
+
+    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    console.log("2. Razorpay Key ID:", razorpayKey);
+
+    if (!razorpayKey) {
+      toast.error("Razorpay Key ID is not configured. Please check your .env file.");
+      console.error("Error: VITE_RAZORPAY_KEY_ID is missing.");
+      return;
+    }
+
+    // --- Validation ---
     if (!phone.trim() || phone.length !== 10 || !/^\d+$/.test(phone)) {
       return toast.error('Please enter a valid 10-digit WhatsApp number');
     }
-    if (!address.trim()) {
-      return toast.error('Please enter your delivery address');
-    }
-    if (mealCount <= 0) {
-      return toast.error('Please enter a valid number of meals');
-    }
+    console.log("3. Form validation passed.");
+
+    const fullPhoneNumber = `91${phone}`;
 
     try {
-      // --- Step 2: Create a customer account ---
+      // --- Customer Creation ---
+      console.log("4. Sending request to create customer...");
       const customerRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/customer/create`, {
-        whatsappNumber: phone,
+        whatsappNumber: fullPhoneNumber,
         deliveryAddress: address,
       });
       const customerId = customerRes.data.data.id;
-      if (!customerId) {
-        throw new Error('Customer ID not found');
-      }
+      console.log("5. Customer created with ID:", customerId);
 
-      // --- Step 3: Get Razorpay order_id from your backend ---
+      // --- Razorpay Order Creation ---
+      console.log("6. Sending request to create Razorpay order...");
       const orderRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/payment/create-order`, {
         amount: totalAmount,
       });
       const { order } = orderRes.data;
+      console.log("7. Razorpay order created:", order.id);
+
 
       // --- Step 4: Configure and open the Razorpay payment modal ---
       const options = {
@@ -204,7 +213,7 @@ export const CustomerPage = () => {
             mealQuantity: mealCount,
             mealSplit: selectedMeal,
             totalAmount,
-            whatsappNumber: phone
+            whatsappNumber: fullPhoneNumber,
           });
 
           if (verificationRes.data.success) {
@@ -226,15 +235,15 @@ export const CustomerPage = () => {
         }
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      console.log("8. Opening Razorpay payment modal...");
+      const rzp = new window.Razorpay(options);
+      rzp.open();
 
     } catch (err) {
-      console.error(err);
+      console.error("9. An error occurred in the payment process:", err);
       toast.error('An error occurred. Please try again.');
     }
   };
-
   // Don't show the form if no menus are available
   if (!loading && !availableMenus.lunch && !availableMenus.dinner) {
     return (
@@ -592,12 +601,29 @@ export const CustomerPage = () => {
                         </div>
                       </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            State
+                          </label>
+                          <input
+                            type="text"
+                            value={state}
+                            onChange={(e) => setState(e.target.value)}
+                            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all duration-300"
+                            placeholder="Enter city"
+                          />
+                        </div>
+                      </div>
+
+
                       {/* Add Address Button */}
                       <button
                         type="button"
                         onClick={() => {
                           // This would typically save the address
                           console.log('Combined Address:', getCombinedAddress());
+                          setAddress(getCombinedAddress());
                           alert('Address saved! Check console for combined address string.');
                         }}
                         className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105"
