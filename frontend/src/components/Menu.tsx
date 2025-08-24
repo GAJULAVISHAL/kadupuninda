@@ -8,10 +8,6 @@ const MenuManagement = () => {
   const [menuType, setMenuType] = useState('Lunch Menu');
   const [menuDate, setMenuDate] = useState('');
   const [menuItems, setMenuItems] = useState('');
-  const [totalCustomers, setTotalCustomers] = useState('');
-  const [confirmations, setConfirmations] = useState(0);
-  const [menuSent, setMenuSent] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,13 +44,6 @@ const MenuManagement = () => {
 
       toast.success(' Menu created successfully!');
 
-      // Simulate WhatsApp sending logic (as in original code)
-      const total = parseInt(totalCustomers);
-      const randomConfirmations = Math.floor(Math.random() * (total - 20) + 20);
-
-      setMenuSent(total);
-      setConfirmations(randomConfirmations);
-      setSubmitted(true);
 
     } catch (err) {
       console.error('Error creating menu:', err);
@@ -67,9 +56,6 @@ const MenuManagement = () => {
       setLoading(false);
     }
   };
-
-  const responseRate = menuSent > 0 ? Math.round((confirmations / menuSent) * 100) : 0;
-
   return (
     <div className="bg-white shadow-md rounded-xl p-6 w-full max-w-md">
       <h2 className="text-xl font-semibold mb-4 text-green-700">🍽️ Menu Management</h2>
@@ -154,28 +140,7 @@ const MenuManagement = () => {
             }`}
         >
           {loading ? 'Uploading...' : 'Upload & Send to Customers'}
-        </button>
-
-        {submitted && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-            <h3 className="font-medium text-green-800 mb-2">📲 WhatsApp Status</h3>
-
-            <div className="flex justify-between text-sm text-gray-800">
-              <span>Menus sent:</span>
-              <strong>{menuSent}/{totalCustomers}</strong>
-            </div>
-
-            <div className="flex justify-between text-sm text-gray-800">
-              <span>Confirmations received:</span>
-              <strong>{confirmations}/{totalCustomers}</strong>
-            </div>
-
-            <div className="flex justify-between text-sm text-gray-800">
-              <span>Response rate:</span>
-              <strong>{responseRate}%</strong>
-            </div>
-          </div>
-        )}
+        </button>        
       </form>
     </div>
   );
