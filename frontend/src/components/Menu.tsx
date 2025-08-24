@@ -4,6 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 const MenuManagement = () => {
+  const [ratePerMeal, setRatePerMeal] = useState('');
   const [menuType, setMenuType] = useState('Lunch Menu');
   const [menuDate, setMenuDate] = useState('');
   const [menuItems, setMenuItems] = useState('');
@@ -27,10 +28,11 @@ const MenuManagement = () => {
 
       // Prepare API request body
       const requestBody = {
-        menuType: menuType.toLowerCase().replace(' menu', ''), // Convert "Lunch Menu" to "lunch"
+        menuType: menuType.toLowerCase().replace(' menu', ''),
         menuDate: menuDate,
-        menuItems: itemsArray
-      };
+        menuItems: itemsArray,
+        ratePerMeal: parseInt(ratePerMeal, 10), // 👈 2. Add the rate to the request
+    };
 
       // Make API call
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/menu/add`, requestBody, {
@@ -129,6 +131,18 @@ const MenuManagement = () => {
             required
           ></textarea>
           <p className="text-xs mt-1 text-gray-400">Enter each menu item on a new line</p>
+        </div>
+
+        <div>
+            <label className="text-sm font-medium block mb-1">Rate Per Meal (₹)</label>
+            <input
+                type="number"
+                value={ratePerMeal}
+                onChange={(e) => setRatePerMeal(e.target.value)}
+                className="w-full border rounded-md px-3 py-2"
+                placeholder="e.g., 80"
+                required
+            />
         </div>
 
         <button

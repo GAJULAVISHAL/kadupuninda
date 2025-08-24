@@ -23,8 +23,8 @@ export const CustomerPage = () => {
     lunch: false,
     dinner: false
   });
-
-  const ratePerMeal = 1;
+  const [ratePerMeal, setRatePerMeal] = useState(1)
+  // const ratePerMeal = 1;
   const totalAmount = mealCount * ratePerMeal;
 
 
@@ -64,6 +64,7 @@ export const CustomerPage = () => {
         const lunchRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/menu/today?menuType=lunch`);
         if (lunchRes.data?.data?.menuItems && lunchRes.data.data.menuItems.length > 0) {
           setLunchMenu(lunchRes.data.data.menuItems);
+          setRatePerMeal(lunchRes.data.data.ratePerMeal);
           menuStatus.lunch = true;
         }
       } catch (lunchError) {
