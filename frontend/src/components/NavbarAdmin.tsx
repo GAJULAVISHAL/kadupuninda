@@ -1,13 +1,16 @@
 import { Home } from "lucide-react";
-
+import logo from '../assets/logo1.png';
 export const NavbarAdmin = () => {
     return (
         // On small screens (mobile), reduce padding with px-4. On medium screens and up, use more padding with md:px-8
         <div className="flex justify-between items-center px-4 md:px-8 py-3 shadow-sm bg-white">
             <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-600 text-white rounded-md flex items-center justify-center font-bold text-lg flex-shrink-0">
-                    K
-                </div>
+                {/* 👇 2. Replace the div with an img tag */}
+                <img 
+                    src={logo} 
+                    alt="Kadupuninda Logo" 
+                    className="w-12 h-12 object-fill" // object-contain ensures the logo fits well
+                />
                 <div>
                     <h1 className="font-semibold text-lg text-black leading-none">Kadupuninda</h1>
                     {/* Hide tagline on very small screens */}
