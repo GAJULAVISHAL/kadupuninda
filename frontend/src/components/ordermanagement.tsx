@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Truck, ChevronDown, Loader2 } from "lucide-react"; // 👈 Import Loader2 for the spinner
 import axios from "axios";
+import toast from "react-hot-toast";
 
 // This should be the Delivery interface from your other component
 interface Delivery {
@@ -12,7 +13,9 @@ interface Delivery {
   createdAt: string;
 }
 
-export default function DeliveryManagement() {
+export default function DeliveryManagement({setPendingDeliveries}:{
+      setPendingDeliveries: React.Dispatch<React.SetStateAction<number>>;
+    }) {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,10 +25,8 @@ export default function DeliveryManagement() {
   const sortDeliveries = (deliveries: Delivery[]) => {
     const statusOrder = {
       scheduled: 0,
-      preparing: 1,
-      in_transit: 2,
-      delivered: 3,
-      cancelled: 4,
+      delivered: 1,
+      cancelled: 2,
     };
 
     return deliveries.sort((a, b) => {
@@ -70,7 +71,10 @@ export default function DeliveryManagement() {
     try {
       await axios.patch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/delivery/${deliveryId}/status`, {
         status: newStatus,
-      });
+      }).then(()=>{
+        setPendingDeliveries(prev => newStatus === 'scheduled' ? prev + 1 : prev - 1);
+        toast.success("Delivery status updated successfully!");
+      }); // Update pending deliveries count
 
       setDeliveries(prevDeliveries => {
         const updated = prevDeliveries.map(d =>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import { Navbar } from "../components/Navbar";
 import { Sun, Moon, Utensils, Calendar, Lightbulb, Clock, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
+import logo from '../assets/logo1.png';
 
 declare global {
   interface Window {
@@ -18,6 +19,7 @@ export const CustomerPage = () => {
   const [lunchMenu, setLunchMenu] = useState<string[]>([]);
   const [dinnerMenu, setDinnerMenu] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [availableMenus, setAvailableMenus] = useState({
     lunch: false,
@@ -156,19 +158,13 @@ export const CustomerPage = () => {
   };
 
   const handlePayment = async () => {
+    if (paymentProcessing) return; // Prevent multiple clicks
+    setPaymentProcessing(true);
     console.log("1. handlePayment function started.");
-
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-    console.log("2. Razorpay Key ID:", razorpayKey);
-
-    if (!razorpayKey) {
-      toast.error("Razorpay Key ID is not configured. Please check your .env file.");
-      console.error("Error: VITE_RAZORPAY_KEY_ID is missing.");
-      return;
-    }
 
     // --- Validation ---
     if (!phone.trim() || phone.length !== 10 || !/^\d+$/.test(phone)) {
+      setPaymentProcessing(false);
       return toast.error('Please enter a valid 10-digit WhatsApp number');
     }
     console.log("3. Form validation passed.");
@@ -196,43 +192,56 @@ export const CustomerPage = () => {
 
       // --- Step 4: Configure and open the Razorpay payment modal ---
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Get your key from .env.local
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Kadupuninda Meals",
         description: "Meal Subscription Payment",
         order_id: order.id,
-        // This handler function is called upon successful payment
         handler: async function (response: any) {
-          // --- Step 5: Send payment details to your backend for verification ---
-          const verificationRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/payment/verify`, {
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature,
-            // Pass all the other order details needed for creation
-            customerId,
-            mealQuantity: mealCount,
-            mealSplit: selectedMeal,
-            totalAmount,
-            whatsappNumber: fullPhoneNumber,
-          });
+          try {
+            // Send payment details to your backend for verification
+            const verificationRes = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/payment/verify`, {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              customerId,
+              mealQuantity: mealCount,
+              mealSplit: selectedMeal,
+              totalAmount,
+              whatsappNumber: fullPhoneNumber,
+            });
 
-          if (verificationRes.data.success) {
-            toast.success(verificationRes.data.message);
-            // Reset form on success
-            setPhone('');
-            setAddress('');
-            setMealCount(10);
-          } else {
+            if (verificationRes.data.success) {
+              toast.success(verificationRes.data.message);
+              // Reset form on success
+              setPhone('');
+              setAddress('');
+              setMealCount(10);
+            } else {
+              toast.error("Payment verification failed. Please contact support.");
+            }
+          } catch (verificationError) {
+            console.error("Verification POST failed:", verificationError);
             toast.error("Payment verification failed. Please contact support.");
+          } finally {
+            // --- 2. ADD THIS: Reset state after verification (success or fail) ---
+            setPaymentProcessing(false);
           }
         },
         prefill: {
-          name: "Customer Name", // Optional
+          name: "Customer Name",
           contact: phone
         },
         theme: {
-          color: "#4CAF50" // A nice green theme
+          color: "#4CAF50"
+        },
+        // --- 3. ADD THIS: Handle user closing the modal ---
+        modal: {
+          ondismiss: function () {
+            console.log('Payment modal dismissed by user.');
+            setPaymentProcessing(false);
+          }
         }
       };
 
@@ -243,14 +252,15 @@ export const CustomerPage = () => {
     } catch (err) {
       console.error("9. An error occurred in the payment process:", err);
       toast.error('An error occurred. Please try again.');
+      setPaymentProcessing(false);
     }
   };
   // Don't show the form if no menus are available
   if (!loading && !availableMenus.lunch && !availableMenus.dinner) {
     return (
       <div className="flex flex-col min-h-screen p-4 bg-gray-100">
-        <Toaster position="top-right" />
         <Navbar />
+        <Toaster position="top-right" />
 
         <div className="max-w-3xl w-full mx-auto space-y-6 flex-1 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-md p-8 text-center">
@@ -276,8 +286,12 @@ export const CustomerPage = () => {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-              <Utensils className="text-white" size={24} />
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <img 
+                    src={logo} 
+                    alt="Kadupuninda Logo" 
+                    className="w-14 h-14 object-fill" // object-contain ensures the logo fits well
+                />
             </div>
             <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
@@ -288,6 +302,8 @@ export const CustomerPage = () => {
           </div>
         </div>
 
+        <Toaster position="top-right" />
+
         {/* Main Card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-green-100 animate-slide-up">
           {/* Header */}
@@ -296,8 +312,12 @@ export const CustomerPage = () => {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full translate-y-12 -translate-x-12"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                  <Utensils size={18} />
+                <div className="w-8 h-8 bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <img 
+                    src={logo} 
+                    alt="Kadupuninda Logo" 
+                    className="w-14 h-12 object-fill" // object-contain ensures the logo fits well
+                />
                 </div>
                 <h2 className="text-2xl font-bold">Book Your Meal Subscription</h2>
               </div>
@@ -622,10 +642,20 @@ export const CustomerPage = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          // This would typically save the address
-                          console.log('Combined Address:', getCombinedAddress());
+                          if (
+                            !fullName.trim() ||
+                            !mobileNumber.trim() ||
+                            !pincode.trim() ||
+                            !flatDetails.trim() ||
+                            !areaDetails.trim() ||
+                            !city.trim() ||
+                            !state.trim()
+                          ) {
+                            toast.error('Please fill out all required address fields.');
+                            return;
+                          }
                           setAddress(getCombinedAddress());
-                          alert('Address saved! Check console for combined address string.');
+                          toast.success('Address added successfully!');
                         }}
                         className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105"
                       >
@@ -670,17 +700,27 @@ export const CustomerPage = () => {
               </div>
 
               {/* Pay Button */}
-              <button
-                onClick={handlePayment}
-                disabled={!isMealTypeAvailable(selectedMeal)}
-                className={`w-full py-4 px-6 rounded-2xl text-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-105 ${isMealTypeAvailable(selectedMeal)
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-              >
-                <CreditCard size={24} />
-                {isMealTypeAvailable(selectedMeal) ? 'Pay Securely with Razorpay' : 'Selected Meal Not Available'}
-              </button>
+              {
+                paymentProcessing ? (
+                  <div className='flex justify-center'>
+
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-black border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handlePayment}
+                    disabled={!isMealTypeAvailable(selectedMeal)}
+                    className={`w-full py-4 px-6 rounded-2xl text-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-105 ${isMealTypeAvailable(selectedMeal)
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                  >
+                    <CreditCard size={24} />
+                    {isMealTypeAvailable(selectedMeal) ? 'Pay Securely with Razorpay' : 'Selected Meal Not Available'}
+                  </button>
+                )
+              }
+
 
               <div className="flex justify-center gap-8 text-gray-500 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2">

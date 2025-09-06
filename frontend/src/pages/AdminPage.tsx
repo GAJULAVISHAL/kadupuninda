@@ -6,6 +6,7 @@ import { Calendar, Users, Truck, IndianRupee } from "lucide-react";
 import AllOrders from "../components/allorders";
 import DeliveryManagement from "../components/ordermanagement"; // Make sure this is imported
 import MenuManagement from "../components/Menu";
+import { Toaster } from "react-hot-toast";
 
 export const AdminPage = () => {
   const [todayOrderCount, setTodayOrderCount] = useState<number>(0);
@@ -51,6 +52,7 @@ export const AdminPage = () => {
   return (
     <div className="min-h-screen bg-gray-100">
             <NavbarAdmin />
+            <Toaster position="top-right" />
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-7xl mx-auto space-y-8">
                     
@@ -78,7 +80,7 @@ export const AdminPage = () => {
                         </div>
                         {/* Right Column */}
                         <div className="w-full lg:w-2/3 space-y-8">
-                            <DeliveryManagement />
+                            <DeliveryManagement  setPendingDeliveries={setPendingDeliveries} />
                         </div>
                     </div>
                     

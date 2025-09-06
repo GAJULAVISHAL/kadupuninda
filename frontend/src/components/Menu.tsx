@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-const MenuManagement = () => {
+const   MenuManagement = () => {
   const [ratePerMeal, setRatePerMeal] = useState('');
   const [menuType, setMenuType] = useState('Lunch Menu');
   const [menuDate, setMenuDate] = useState('');
