@@ -1,4 +1,5 @@
 import { Phone } from 'lucide-react';
+import logo from '../assets/logo1.png';
 
 export const Navbar = () => {
     return (
@@ -8,7 +9,11 @@ export const Navbar = () => {
             {/* Left: Logo + Name + Tagline */}
             <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-10 h-10 bg-green-600 text-white rounded-md flex items-center justify-center font-bold text-lg flex-shrink-0">
-                    K
+                    <img 
+                                        src={logo} 
+                                        alt="Kadupuninda Logo" 
+                                        className="w-12 h-12 object-fill" // object-contain ensures the logo fits well
+                                    />
                 </div>
                 <div>
                     <h1 className="font-semibold text-lg text-black leading-none">Kadupuninda</h1>
